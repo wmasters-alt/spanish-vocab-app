@@ -192,7 +192,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
           {filtered.map((word, i) => (
             <div
               key={word.id}
-              className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 ${word.learned ? 'opacity-50' : ''}`}
+              className={`flex items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50 ${word.learned ? 'opacity-50' : ''}`}
             >
               {/* Rank — desktop */}
               <span className="hidden sm:block w-8 text-xs text-slate-300 tabular-nums text-right shrink-0">
@@ -201,18 +201,18 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
 
               {/* Spanish + badges */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`font-bold text-indigo-700 ${word.learned ? 'line-through' : ''}`}>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`font-bold text-base text-indigo-700 ${word.learned ? 'line-through' : ''}`}>
                     {word.spanish}
                   </span>
                   {word.isNew && (
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wide">
+                    <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wide">
                       new
                     </span>
                   )}
                 </div>
                 {/* English — mobile shows inline */}
-                <p className="text-sm text-slate-500 mt-0.5 sm:hidden">
+                <p className="text-base text-slate-500 mt-0.5 sm:hidden">
                   {word.english ?? <span className="text-slate-300 italic">translating…</span>}
                 </p>
               </div>
@@ -231,14 +231,14 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
               <button
                 onClick={() => toggleLearned(word)}
                 disabled={toggling.has(word.id)}
-                className={`shrink-0 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all active:scale-90 ${
+                className={`shrink-0 w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
                   word.learned
                     ? 'bg-indigo-600 border-indigo-600 text-white'
                     : 'border-slate-300 hover:border-indigo-400'
                 }`}
               >
                 {word.learned && (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
