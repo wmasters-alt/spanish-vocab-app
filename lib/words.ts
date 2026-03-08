@@ -4,7 +4,8 @@
  */
 export function countWords(text: string): [string, number][] {
   const clean = text.toLowerCase().replace(/[^\p{L}\s]/gu, ' ')
-  const freq: Record<string, number> = {}
+  // Object.create(null) avoids prototype collisions (e.g. "constructor", "toString")
+  const freq = Object.create(null) as Record<string, number>
   for (const word of clean.split(/\s+/)) {
     if (!word || word.length < 2) continue
     if (/^\d+$/.test(word)) continue

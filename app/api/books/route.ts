@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const numpages = pageCount ?? null
     const title = (fileName ?? 'Unknown').replace(/\.pdf$/i, '')
     const wordFreqs = countWords(text)
-    const totalUses = wordFreqs.reduce((s, [, c]) => s + c, 0)
+    const totalUses = wordFreqs.reduce((s, [, c]) => s + Number(c), 0)
 
     // Create book
     const book = await prisma.book.create({
