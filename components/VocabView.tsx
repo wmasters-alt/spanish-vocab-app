@@ -92,11 +92,12 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   const filtered = words.filter((w) => {
     const q = search.toLowerCase()
     const matchQ = !q || w.spanish.includes(q) || (w.english ?? '').toLowerCase().includes(q)
+    const isUntranslatable = w.english === '—'
     const matchF =
       filter === 'all' ? true
       : filter === 'new' ? w.isNew
       : filter === 'learned' ? w.learned
-      : !w.learned
+      : !w.learned && !isUntranslatable   // To Learn: exclude names/untranslatable
     return matchQ && matchF
   })
 
@@ -213,7 +214,11 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
                 </div>
                 {/* English — mobile shows inline */}
                 <p className="text-base text-slate-500 mt-0.5 sm:hidden">
-                  {word.english ?? <span className="text-slate-300 italic">translating…</span>}
+                  {word.english === null
+                    ? <span className="text-slate-300 italic">translating…</span>
+                    : word.english === '—'
+                    ? <span className="text-slate-300 italic">name / no translation</span>
+                    : word.english}
                 </p>
               </div>
 

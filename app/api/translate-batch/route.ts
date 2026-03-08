@@ -45,13 +45,13 @@ export async function POST(req: NextRequest) {
 
   for (const word of words) {
     const english = await translateWord(word.spanish)
-    if (english) {
-      await prisma.word.update({
-        where: { id: word.id },
-        data: { english },
-      })
-      results.push({ id: word.id, spanish: word.spanish, english })
-    }
+    // Save '—' for untranslatable words (names, etc.) so they aren't retried
+    const saved = english ?? '—'
+    await prisma.word.update({
+      where: { id: word.id },
+      data: { english: saved },
+    })
+    results.push({ id: word.id, spanish: word.spanish, english: saved })
     await sleep(100)
   }
 
