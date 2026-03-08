@@ -52,9 +52,8 @@ export async function POST(req: NextRequest) {
       data: { title, pageCount: numpages, totalUses },
     })
 
-    // Upsert words + create BookWords in batches
-    const TOP = 2000
-    const topWords = wordFreqs.slice(0, TOP)
+    // Save all words
+    const topWords = wordFreqs
 
     // Find which words already exist
     const spanishList = topWords.map(([w]) => w)
