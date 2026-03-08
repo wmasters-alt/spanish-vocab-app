@@ -12,6 +12,7 @@
     "@prisma/client": "^5.22.0",
     "next": "16.1.6",
     "pdf-parse": "^1.1.1",
+    "pdfjs-dist": "^5.5.207",
     "prisma": "^5.22.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"

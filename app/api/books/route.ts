@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { countWords } from '@/lib/words'
-import pdfParse from 'pdf-parse'
 
 // GET /api/books — list all books
 export async function GET() {
@@ -33,22 +32,18 @@ export async function GET() {
   return NextResponse.json(result)
 }
 
-// POST /api/books — upload PDF, parse, save to DB
+// POST /api/books — receive extracted text, save to DB
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File | null
-    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
-      return NextResponse.json({ error: 'Only PDF files are supported' }, { status: 400 })
+    const { text, fileName, pageCount } = await req.json() as {
+      text: string
+      fileName: string
+      pageCount: number
     }
+    if (!text?.trim()) return NextResponse.json({ error: 'No text provided' }, { status: 400 })
 
-    // Parse PDF
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const { text, numpages } = await pdfParse(buffer)
-
-    // Count words
-    const title = file.name.replace(/\.pdf$/i, '')
+    const numpages = pageCount ?? null
+    const title = (fileName ?? 'Unknown').replace(/\.pdf$/i, '')
     const wordFreqs = countWords(text)
     const totalUses = wordFreqs.reduce((s, [, c]) => s + c, 0)
 

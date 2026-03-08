@@ -3,7 +3,26 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 
-type Stage = 'idle' | 'uploading' | 'parsing' | 'done' | 'error'
+type Stage = 'idle' | 'reading' | 'parsing' | 'saving' | 'error'
+
+async function extractTextFromPDF(file: File): Promise<{ text: string; pageCount: number }> {
+  const pdfjsLib = await import('pdfjs-dist')
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`
+
+  const arrayBuffer = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+
+  let text = ''
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const content = await page.getTextContent()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    text += content.items.map((item: any) => ('str' in item ? item.str : '')).join(' ') + '\n'
+  }
+
+  return { text, pageCount: pdf.numPages }
+}
 
 export default function BookUpload() {
   const [stage, setStage] = useState<Stage>('idle')
@@ -17,20 +36,28 @@ export default function BookUpload() {
       return
     }
     setError('')
-    setStage('uploading')
-
-    const fd = new FormData()
-    fd.append('file', file)
 
     try {
-      setStage('parsing')
-      const res = await fetch('/api/books', { method: 'POST', body: fd })
+      // Step 1: Extract text in the browser (no upload size limit this way)
+      setStage('reading')
+      const { text, pageCount } = await extractTextFromPDF(file)
+
+      // Step 2: Send text as JSON to the API
+      setStage('saving')
+      const res = await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, fileName: file.name, pageCount }),
+      })
+
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error ?? 'Upload failed')
+        const text = await res.text()
+        let message = 'Upload failed'
+        try { message = JSON.parse(text).error ?? message } catch { message = text.slice(0, 120) || message }
+        throw new Error(message)
       }
+
       const { book } = await res.json()
-      setStage('done')
       router.push(`/books/${book.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -50,7 +77,15 @@ export default function BookUpload() {
     if (file) upload(file)
   }
 
-  const busy = stage === 'uploading' || stage === 'parsing'
+  const busy = stage !== 'idle' && stage !== 'error'
+
+  const stageLabel: Record<Stage, string> = {
+    idle: '',
+    reading: 'Extracting text from PDF…',
+    parsing: 'Counting words…',
+    saving: 'Saving to database…',
+    error: '',
+  }
 
   return (
     <div>
@@ -65,9 +100,7 @@ export default function BookUpload() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
-            <p className="text-indigo-700 font-medium">
-              {stage === 'uploading' ? 'Uploading…' : 'Parsing PDF & saving words…'}
-            </p>
+            <p className="text-indigo-700 font-medium">{stageLabel[stage]}</p>
             <p className="text-sm text-indigo-400">This may take a moment for large books</p>
           </div>
         ) : (
