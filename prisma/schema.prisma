@@ -1,0 +1,39 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Book {
+  id        String     @id @default(cuid())
+  title     String
+  pageCount Int?
+  totalUses Int        @default(0)
+  createdAt DateTime   @default(now())
+  bookWords BookWord[]
+}
+
+model Word {
+  id        String     @id @default(cuid())
+  spanish   String     @unique
+  english   String?
+  learned   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  bookWords BookWord[]
+}
+
+model BookWord {
+  id        String  @id @default(cuid())
+  bookId    String
+  wordId    String
+  frequency Int
+  isNew     Boolean @default(false)
+  book      Book    @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  word      Word    @relation(fields: [wordId], references: [id])
+
+  @@unique([bookId, wordId])
+}
