@@ -3,56 +3,61 @@ import { prisma } from '@/lib/db'
 
 const DEEPL_KEY = process.env.DEEPL_KEY ?? ''
 
-async function translateWord(word: string): Promise<string | null> {
-  try {
-    const res = await fetch('https://api-free.deepl.com/v2/translate', {
-      method: 'POST',
-      headers: {
-        'Authorization': `DeepL-Auth-Key ${DEEPL_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text: [word], source_lang: 'ES', target_lang: 'EN' }),
-    })
-    if (!res.ok) return null
-    const data = await res.json()
-    const t = data.translations?.[0]?.text?.trim()
-    return t && t.toLowerCase() !== word.toLowerCase() ? t : null
-  } catch {
-    return null
-  }
-}
+// Translate up to 50 words in a single DeepL request
+async function translateBatch(words: { id: string; spanish: string }[]) {
+  const res = await fetch('https://api-free.deepl.com/v2/translate', {
+    method: 'POST',
+    headers: {
+      'Authorization': `DeepL-Auth-Key ${DEEPL_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      text: words.map((w) => w.spanish),
+      source_lang: 'ES',
+      target_lang: 'EN',
+    }),
+  })
 
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
+  if (!res.ok) return words.map(() => '—')
+
+  const data = await res.json()
+  return words.map((w, i) => {
+    const t = data.translations?.[i]?.text?.trim()
+    return t && t.toLowerCase() !== w.spanish.toLowerCase() ? t : '—'
+  })
 }
 
 // POST /api/translate-batch
 // Body: { wordIds: string[] }
-// Returns: { translations: { id, spanish, english }[] }
 export async function POST(req: NextRequest) {
   const { wordIds } = await req.json() as { wordIds: string[] }
   if (!Array.isArray(wordIds) || wordIds.length === 0) {
     return NextResponse.json({ translations: [] })
   }
 
-  // Fetch words that still need translation
   const words = await prisma.word.findMany({
     where: { id: { in: wordIds }, english: null },
     select: { id: true, spanish: true },
   })
 
+  if (words.length === 0) return NextResponse.json({ translations: [] })
+
+  // Split into chunks of 50 (DeepL max per request)
+  const CHUNK = 50
   const results: { id: string; spanish: string; english: string }[] = []
 
-  for (const word of words) {
-    const english = await translateWord(word.spanish)
-    // Save '—' for untranslatable words (names, etc.) so they aren't retried
-    const saved = english ?? '—'
-    await prisma.word.update({
-      where: { id: word.id },
-      data: { english: saved },
-    })
-    results.push({ id: word.id, spanish: word.spanish, english: saved })
-    await sleep(100)
+  for (let i = 0; i < words.length; i += CHUNK) {
+    const chunk = words.slice(i, i + CHUNK)
+    const translations = await translateBatch(chunk)
+
+    const updates = chunk.map((w, j) => ({ id: w.id, spanish: w.spanish, english: translations[j] }))
+
+    // Save all in parallel
+    await Promise.all(
+      updates.map((u) => prisma.word.update({ where: { id: u.id }, data: { english: u.english } }))
+    )
+
+    results.push(...updates)
   }
 
   return NextResponse.json({ translations: results })

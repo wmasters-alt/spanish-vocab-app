@@ -38,7 +38,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
     setTranslating(true)
     setTransProgress({ done: 0, total: untranslated.length })
 
-    const BATCH = 50
+    const BATCH = 500
     let done = 0
 
     for (let i = 0; i < untranslated.length; i += BATCH) {
