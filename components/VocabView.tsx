@@ -97,6 +97,8 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   }
 
   const learnedCount = words.filter((w) => w.learned).length
+  const learnedUses = words.filter((w) => w.learned).reduce((sum, w) => sum + w.frequency, 0)
+  const coveragePct = book.totalUses > 0 ? Math.round((learnedUses / book.totalUses) * 100) : 0
   const untranslatedCount = words.filter((w) => w.english === null).length
 
   const filtered = words.filter((w) => {
@@ -142,12 +144,21 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
       {/* Progress */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-slate-700">{learnedCount} / {words.length} learned</span>
+          <span className="text-sm font-semibold text-slate-700">{learnedCount} / {words.length} unique words</span>
           <span className="text-sm font-bold text-indigo-600">{pct}%</span>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
           <div className="h-full bg-indigo-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
+
+        <div className="flex items-center justify-between mt-3 mb-2">
+          <span className="text-sm font-semibold text-slate-700">Book coverage</span>
+          <span className="text-sm font-bold text-emerald-600">{coveragePct}%</span>
+        </div>
+        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${coveragePct}%` }} />
+        </div>
+        <p className="text-xs text-slate-400 mt-1.5">% of word occurrences you know</p>
 
         {translating && (
           <div className="mt-3 flex items-center gap-2 text-xs text-indigo-600">
