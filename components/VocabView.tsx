@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Word {
   id: string
@@ -29,6 +30,15 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   const [translating, setTranslating] = useState(false)
   const [transProgress, setTransProgress] = useState({ done: 0, total: 0 })
   const [toggling, setToggling] = useState<Set<string>>(new Set())
+  const [deleting, setDeleting] = useState(false)
+  const router = useRouter()
+
+  const deleteBook = async () => {
+    if (!confirm(`Delete "${book.title}"? This cannot be undone.`)) return
+    setDeleting(true)
+    await fetch(`/api/books/${book.id}`, { method: 'DELETE' })
+    router.push('/')
+  }
 
   // Run batch translation on mount for any untranslated words
   const runTranslation = useCallback(async () => {
@@ -113,11 +123,20 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   return (
     <div>
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-xl font-bold text-slate-900 leading-tight">{book.title}</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          {book.wordCount.toLocaleString()} words · {book.pageCount ? `${book.pageCount} pages · ` : ''}{book.totalUses.toLocaleString()} total uses
-        </p>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900 leading-tight">{book.title}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            {book.wordCount.toLocaleString()} words · {book.pageCount ? `${book.pageCount} pages · ` : ''}{book.totalUses.toLocaleString()} total uses
+          </p>
+        </div>
+        <button
+          onClick={deleteBook}
+          disabled={deleting}
+          className="shrink-0 px-3 py-1.5 text-xs font-semibold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 active:scale-95 transition-all"
+        >
+          {deleting ? 'Deleting…' : 'Delete'}
+        </button>
       </div>
 
       {/* Progress */}
