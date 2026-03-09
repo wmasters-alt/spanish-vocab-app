@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import WordContextModal from './WordContextModal'
 
 interface Word {
   id: string
@@ -31,6 +32,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   const [transProgress, setTransProgress] = useState({ done: 0, total: 0 })
   const [toggling, setToggling] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState(false)
+  const [selectedWord, setSelectedWord] = useState<Word | null>(null)
   const router = useRouter()
 
   const deleteBook = async () => {
@@ -223,7 +225,8 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
           {filtered.map((word, i) => (
             <div
               key={word.id}
-              className={`flex items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50 ${word.learned ? 'opacity-50' : ''}`}
+              onClick={() => setSelectedWord(word)}
+              className={`flex items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50 cursor-pointer active:bg-indigo-50 ${word.learned ? 'opacity-50' : ''}`}
             >
               {/* Rank — desktop */}
               <span className="hidden sm:block w-8 text-xs text-slate-300 tabular-nums text-right shrink-0">
@@ -264,7 +267,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
 
               {/* Learned checkbox */}
               <button
-                onClick={() => toggleLearned(word)}
+                onClick={(e) => { e.stopPropagation(); toggleLearned(word) }}
                 disabled={toggling.has(word.id)}
                 className={`shrink-0 w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
                   word.learned
@@ -282,6 +285,14 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
           ))}
         </div>
       </div>
+
+      {selectedWord && (
+        <WordContextModal
+          word={selectedWord}
+          bookId={book.id}
+          onClose={() => setSelectedWord(null)}
+        />
+      )}
     </div>
   )
 }

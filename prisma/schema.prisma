@@ -12,6 +12,7 @@ model Book {
   title     String
   pageCount Int?
   totalUses Int        @default(0)
+  text      String?
   createdAt DateTime   @default(now())
   bookWords BookWord[]
 }

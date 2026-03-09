@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     // Create book
     const book = await prisma.book.create({
-      data: { title, pageCount: numpages, totalUses },
+      data: { title, pageCount: numpages, totalUses, text },
     })
 
     // Save all words
