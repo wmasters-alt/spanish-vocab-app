@@ -24,8 +24,9 @@ interface Book {
 
 type Filter = 'all' | 'new' | 'tolearn' | 'learned'
 
-export default function VocabView({ book, initialWords }: { book: Book; initialWords: Word[] }) {
-  const [words, setWords] = useState<Word[]>(initialWords)
+export default function VocabView({ book }: { book: Book }) {
+  const [words, setWords] = useState<Word[]>([])
+  const [wordsLoading, setWordsLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [translating, setTranslating] = useState(false)
@@ -34,6 +35,14 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
   const [deleting, setDeleting] = useState(false)
   const [selectedWord, setSelectedWord] = useState<Word | null>(null)
   const router = useRouter()
+
+  // Fetch words client-side so the initial page payload stays small
+  useEffect(() => {
+    fetch(`/api/books/${book.id}`)
+      .then((r) => r.json())
+      .then((d) => { setWords(d.words ?? []); setWordsLoading(false) })
+      .catch(() => setWordsLoading(false))
+  }, [book.id])
 
   const deleteBook = async () => {
     if (!confirm(`Delete "${book.title}"? This cannot be undone.`)) return
@@ -80,10 +89,11 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
     setTranslating(false)
   }, [words])
 
+  // Run translation once words have loaded
   useEffect(() => {
-    runTranslation()
+    if (!wordsLoading && words.length > 0) runTranslation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [wordsLoading])
 
   const toggleLearned = async (word: Word) => {
     if (toggling.has(word.id)) return
@@ -219,7 +229,16 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
         </div>
 
         <div className="divide-y divide-slate-50">
-          {filtered.length === 0 && (
+          {wordsLoading && (
+            <div className="flex items-center justify-center gap-2 py-12 text-sm text-slate-400">
+              <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              Loading words…
+            </div>
+          )}
+          {!wordsLoading && filtered.length === 0 && (
             <p className="text-center text-slate-400 py-10 text-sm">No words match.</p>
           )}
           {filtered.map((word, i) => (
