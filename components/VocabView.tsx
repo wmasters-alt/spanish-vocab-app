@@ -265,21 +265,23 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
                 {word.frequency.toLocaleString()}
               </div>
 
-              {/* Learned checkbox */}
+              {/* Learned checkbox — larger tap area on mobile via padding */}
               <button
                 onClick={(e) => { e.stopPropagation(); toggleLearned(word) }}
                 disabled={toggling.has(word.id)}
-                className={`shrink-0 w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
+                className="shrink-0 p-3 -m-3 sm:p-1 sm:-m-1 flex items-center justify-center"
+              >
+                <span className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
                   word.learned
                     ? 'bg-indigo-600 border-indigo-600 text-white'
                     : 'border-slate-300 hover:border-indigo-400'
-                }`}
-              >
-                {word.learned && (
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
+                }`}>
+                  {word.learned && (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </span>
               </button>
             </div>
           ))}
