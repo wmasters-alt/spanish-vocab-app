@@ -225,51 +225,61 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
           {filtered.map((word, i) => (
             <div
               key={word.id}
-              onClick={() => setSelectedWord(word)}
-              className={`flex items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50 cursor-pointer active:bg-indigo-50 ${word.learned ? 'opacity-50' : ''}`}
+              className={`flex items-stretch divide-x divide-slate-100 ${word.learned ? 'opacity-50' : ''}`}
             >
-              {/* Rank — desktop */}
-              <span className="hidden sm:block w-8 text-xs text-slate-300 tabular-nums text-right shrink-0">
-                {i + 1}
-              </span>
+              {/* Left: content area — tap to open modal */}
+              <div
+                onClick={() => setSelectedWord(word)}
+                className="flex-1 min-w-0 flex items-center gap-2 px-3 py-3 cursor-pointer hover:bg-slate-50 active:bg-indigo-50 transition-colors"
+              >
+                {/* Rank — desktop */}
+                <span className="hidden sm:block w-8 text-xs text-slate-300 tabular-nums text-right shrink-0">
+                  {i + 1}
+                </span>
 
-              {/* Spanish + badges */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className={`font-bold text-base text-indigo-700 ${word.learned ? 'line-through' : ''}`}>
-                    {word.spanish}
-                  </span>
-                  {word.isNew && (
-                    <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wide">
-                      new
+                {/* Spanish + badges */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className={`font-bold text-base text-indigo-700 ${word.learned ? 'line-through' : ''}`}>
+                      {word.spanish}
                     </span>
-                  )}
+                    {word.isNew && (
+                      <span className="hidden sm:inline text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 uppercase tracking-wide">
+                        new
+                      </span>
+                    )}
+                  </div>
+                  {/* English + frequency — mobile */}
+                  <div className="flex items-baseline gap-2 mt-0.5 sm:hidden">
+                    <p className="text-sm text-slate-500">
+                      {word.english === null
+                        ? <span className="text-slate-300 italic">translating…</span>
+                        : word.english === '—'
+                        ? <span className="text-slate-300 italic">name / no translation</span>
+                        : word.english}
+                    </p>
+                    <span className="text-xs text-slate-300 tabular-nums shrink-0">
+                      ×{word.frequency.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-                {/* English — mobile shows inline */}
-                <p className="text-base text-slate-500 mt-0.5 sm:hidden">
-                  {word.english === null
-                    ? <span className="text-slate-300 italic">translating…</span>
-                    : word.english === '—'
-                    ? <span className="text-slate-300 italic">name / no translation</span>
-                    : word.english}
-                </p>
+
+                {/* English — desktop column */}
+                <div className="hidden sm:block flex-1 text-sm text-slate-600">
+                  {word.english ?? <span className="text-slate-300 italic">…</span>}
+                </div>
+
+                {/* Uses — desktop */}
+                <div className="hidden sm:block w-16 text-xs text-slate-400 tabular-nums text-right shrink-0">
+                  {word.frequency.toLocaleString()}
+                </div>
               </div>
 
-              {/* English — desktop column */}
-              <div className="hidden sm:block flex-1 text-sm text-slate-600">
-                {word.english ?? <span className="text-slate-300 italic">…</span>}
-              </div>
-
-              {/* Uses — desktop */}
-              <div className="hidden sm:block w-16 text-xs text-slate-400 tabular-nums text-right shrink-0">
-                {word.frequency.toLocaleString()}
-              </div>
-
-              {/* Learned checkbox — larger tap area on mobile via padding */}
+              {/* Right: learned checkbox — fully separate tap zone */}
               <button
-                onClick={(e) => { e.stopPropagation(); toggleLearned(word) }}
+                onClick={() => toggleLearned(word)}
                 disabled={toggling.has(word.id)}
-                className="shrink-0 p-3 -m-3 sm:p-1 sm:-m-1 flex items-center justify-center"
+                className="shrink-0 w-16 flex items-center justify-center hover:bg-slate-50 active:bg-indigo-50 transition-colors"
               >
                 <span className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
                   word.learned
