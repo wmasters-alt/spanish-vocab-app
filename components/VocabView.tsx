@@ -72,7 +72,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
       } catch {
         // continue with next batch on error
       }
-      setTransProgress({ done: done + i, total: untranslated.length })
+      setTransProgress({ done: i + batch.length, total: untranslated.length })
     }
 
     setTranslating(false)
