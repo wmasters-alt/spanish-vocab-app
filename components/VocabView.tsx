@@ -230,7 +230,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
               {/* Left: content area — tap to open modal */}
               <div
                 onClick={() => setSelectedWord(word)}
-                className="flex-1 min-w-0 flex items-center gap-2 px-3 py-3 cursor-pointer hover:bg-slate-50 active:bg-indigo-50 transition-colors"
+                className="flex-1 min-w-0 flex items-center gap-2 px-3 py-3 cursor-pointer hover:bg-slate-50 active:bg-indigo-50 transition-colors touch-manipulation"
               >
                 {/* Rank — desktop */}
                 <span className="hidden sm:block w-8 text-xs text-slate-300 tabular-nums text-right shrink-0">
@@ -279,7 +279,7 @@ export default function VocabView({ book, initialWords }: { book: Book; initialW
               <button
                 onClick={() => toggleLearned(word)}
                 disabled={toggling.has(word.id)}
-                className="shrink-0 w-16 flex items-center justify-center hover:bg-slate-50 active:bg-indigo-50 transition-colors"
+                className="shrink-0 w-16 flex items-center justify-center hover:bg-slate-50 active:bg-indigo-50 transition-colors touch-manipulation"
               >
                 <span className={`w-9 h-9 rounded-xl border-2 flex items-center justify-center transition-all active:scale-90 ${
                   word.learned
